@@ -51,6 +51,8 @@ public class Paciente {
         }
     }
 
+    // VERIFICAR ISSO SE REALMENTE É LISTAR OS PROFISSIONAIS
+    // OU SE É PRA BUSCAR SOMENTE OS DO PACIENTE
     private void buscarProfissional(Scanner sc, UsuariosEntity paciente) {
         List<UsuariosEntity> todos = usuariosService.getAll();
 
