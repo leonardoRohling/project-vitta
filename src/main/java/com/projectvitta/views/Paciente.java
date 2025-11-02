@@ -65,20 +65,89 @@ public class Paciente {
 
             }
         }
-        //Comentário de teste
     }
 
+    //NÃO FOI TESTADO AINDA
     private void listarAgendamentos(UsuariosEntity paciente) {
-        // implementação de listagem
+        List<AgendamentosEntity> todos = agendamentosService.getByUsuario(paciente.getId());
+
+        if (todos == null || todos.isEmpty()) {
+            System.out.println("Nenhum agendamento encontrado.");
+            return;
+        }
+
+        System.out.println("===== AGENDAMENTOS =====\n");
+
+        String[] statusList = {"AGENDADO", "CONFIRMADO", "CANCELADO"};
+
+        for (String status : statusList) {
+            System.out.println(">>> " + status + " <<<");
+            boolean encontrou = false;
+
+            for (AgendamentosEntity a : todos) {
+                if (status.equalsIgnoreCase(a.getStatus())) {
+                    System.out.println("DESCRIÇÃO: " + a.getDescricao());
+                    System.out.println("DATA:   " + a.getDataConsulta());
+                    System.out.println("HORA:   " + a.getHoraConsulta());
+                    System.out.println("-------------------------------");
+                    encontrou = true;
+                }
+            }
+
+            if (!encontrou) {
+                System.out.println("Nenhum agendamento com status " + status.toLowerCase() + ".");
+            }
+
+            System.out.println();
+        }
     }
 
+
+    //Testar
     private void cancelarAgendamento(Scanner sc) {
-        // implementação de cancelamento
+        System.out.println("\n---- CANCELAR AGENDAMENTO ----");
+
+        List<AgendamentosEntity> todos = agendamentosService.getAll();
+
+        if (todos.isEmpty()) {
+            System.out.println("Nenhum agendamento encontrado para cancelar.");
+            return;
+        }
+
+        for (AgendamentosEntity a : todos) {
+            System.out.println("ID: " + a.getId() + " | Descrição: " + a.getDescricao() +
+                    " | Data: " + a.getDataConsulta() + " | Status: " + a.getStatus());
+        }
+
+        System.out.print("\nDigite o ID do agendamento que deseja cancelar: ");
+        Long id = sc.nextLong();
+        sc.nextLine();
+
+        Optional<AgendamentosEntity> opt = agendamentosService.getById(id);
+
+        if (opt.isEmpty()) {
+            System.out.println("Agendamento não encontrado.");
+            return;
+        }
+
+        AgendamentosEntity agendamento = opt.get();
+
+        if (agendamento.getStatus().equalsIgnoreCase("CANCELADO")) {
+            System.out.println("Este agendamento já está cancelado.");
+            return;
+        }
+
+        agendamento.setStatus("CANCELADO");
+        agendamentosService.update(id, agendamento);
+
+        System.out.println("\n✅ Agendamento cancelado com sucesso!");
     }
 
+    //Verificar tabela do banco (tem apenas um id, precisa pro paciente e médico)
     private void criarAgendamento(Scanner sc) {
-        // implementação de cancelamento
+        //Agendamento...
     }
+
 
 
 
