@@ -29,19 +29,19 @@ public class Paciente {
             System.out.println("\n=====================================");
             System.out.println("         MENU PACIENTE - VITTA");
             System.out.println("=====================================");
-            System.out.println("1 - Buscar profissional");
-            System.out.println("2 - Listar meus agendamentos");
-            System.out.println("3 - Cancelar agendamento");
+            System.out.println("1 - Listar minhas consultas");
+            System.out.println("2 - Solicitar consulta");
+            System.out.println("3 - Cancelar consulta");
             System.out.println("0 - Sair");
             System.out.print("Escolha uma opção: ");
             int opcao = sc.nextInt();
             sc.nextLine();
+            System.out.println();
 
             switch (opcao) {
-                case 1 -> buscarProfissional(sc, paciente);
-                case 2 -> listarAgendamentos(paciente);
-                case 3 -> cancelarAgendamento(sc);
-                case 4 -> criarAgendamento(sc);
+                case 1 -> listarConsultas(paciente);
+                case 2 -> solicitarConsulta(sc, paciente);
+                case 3 -> cancelarConsulta(sc, paciente);
                 case 0 -> {
                     System.out.println("Saindo do menu paciente...");
                     return; // volta para menu principal
@@ -51,8 +51,6 @@ public class Paciente {
         }
     }
 
-    // VERIFICAR ISSO SE REALMENTE É LISTAR OS PROFISSIONAIS
-    // OU SE É PRA BUSCAR SOMENTE OS DO PACIENTE
     private void buscarProfissional(Scanner sc, UsuariosEntity paciente) {
         List<UsuariosEntity> todos = usuariosService.getAll();
 
@@ -61,24 +59,22 @@ public class Paciente {
 
                 System.out.println("COD.:" + u.getId());
                 System.out.println("NOME: " + u.getNome());
-                System.out.println();
 
             }
         }
     }
 
-    //NÃO FOI TESTADO AINDA
-    private void listarAgendamentos(UsuariosEntity paciente) {
+    private void listarConsultas(UsuariosEntity paciente) {
         List<AgendamentosEntity> todos = agendamentosService.getByUsuario(paciente.getId());
 
         if (todos == null || todos.isEmpty()) {
-            System.out.println("Nenhum agendamento encontrado.");
+            System.out.println("\nNenhuma consulta encontrada.");
             return;
         }
 
         System.out.println("===== AGENDAMENTOS =====\n");
 
-        String[] statusList = {"AGENDADO", "CONFIRMADO", "CANCELADO"};
+        String[] statusList = {"SOLICITADA", "AGENDADA", "REALIZADA", "CANCELADA", "RECUSADA"};
 
         for (String status : statusList) {
             System.out.println(">>> " + status + " <<<");
@@ -86,6 +82,8 @@ public class Paciente {
 
             for (AgendamentosEntity a : todos) {
                 if (status.equalsIgnoreCase(a.getStatus())) {
+
+                    System.out.println("PACIENTE: " + paciente.getNome());
                     System.out.println("DESCRIÇÃO: " + a.getDescricao());
                     System.out.println("DATA:   " + a.getDataConsulta());
                     System.out.println("HORA:   " + a.getHoraConsulta());
@@ -95,7 +93,7 @@ public class Paciente {
             }
 
             if (!encontrou) {
-                System.out.println("Nenhum agendamento com status " + status.toLowerCase() + ".");
+                System.out.println("\nNenhuma consulta com status " + status.toLowerCase() + ".");
             }
 
             System.out.println();
@@ -103,14 +101,50 @@ public class Paciente {
     }
 
 
-    //Testar
-    private void cancelarAgendamento(Scanner sc) {
-        System.out.println("\n---- CANCELAR AGENDAMENTO ----");
+    private void solicitarConsulta(Scanner sc, UsuariosEntity paciente) {
+        System.out.println("\n---- SOLICITAR CONSULTA ----");
 
-        List<AgendamentosEntity> todos = agendamentosService.getAll();
+        System.out.print("Digite a descrição da consulta: ");
+        String descricao = sc.nextLine();
+
+        System.out.print("Digite a data da consulta (AAAA-MM-DD): ");
+        String dataStr = sc.nextLine();
+
+        System.out.print("Digite a hora da consulta (HH:MM): ");
+        String horaStr = sc.nextLine();
+
+        try {
+            LocalDate data = LocalDate.parse(dataStr);
+            LocalTime hora = LocalTime.parse(horaStr);
+
+            AgendamentosEntity novo = new AgendamentosEntity();
+            novo.setIdUsuario(paciente.getId());
+            novo.setDescricao(descricao);
+            novo.setDataConsulta(data);
+            novo.setHoraConsulta(hora);
+            novo.setStatus("SOLICITADA");
+
+            agendamentosService.create(novo);
+
+            System.out.println("\n✅ Sua solicitação foi enviada com sucesso. Aguarde a confirmação da sua consulta.");
+            System.out.println("\nDados da consulta:\n");
+            System.out.println("Descrição: " + descricao);
+            System.out.println("Data: " + data);
+            System.out.println("Hora: " + hora);
+
+        } catch (Exception e) {
+            System.out.println("\n❌ Erro ao solicitar consulta. Verifique os dados digitados.");
+        }
+    }
+
+
+    private void cancelarConsulta(Scanner sc, UsuariosEntity paciente) {
+        System.out.println("\n---- CANCELAR CONSULTA ----");
+
+        List<AgendamentosEntity> todos = agendamentosService.getByUsuario(paciente.getId());
 
         if (todos.isEmpty()) {
-            System.out.println("Nenhum agendamento encontrado para cancelar.");
+            System.out.println("\nNenhuma consulta encontrada para cancelar.");
             return;
         }
 
@@ -119,102 +153,37 @@ public class Paciente {
                     " | Data: " + a.getDataConsulta() + " | Status: " + a.getStatus());
         }
 
-        System.out.print("\nDigite o ID do agendamento que deseja cancelar: ");
+        // ✅ Pergunta de confirmação antes de prosseguir
+        System.out.print("\nDeseja realmente cancelar uma consulta? (S/N): ");
+        String continuar = sc.nextLine();
+        if (!continuar.equalsIgnoreCase("S")) {
+            System.out.println("\nVoltando ao menu anterior...");
+            return;
+        }
+
+        System.out.print("Digite o ID da consulta que deseja cancelar: ");
         Long id = sc.nextLong();
         sc.nextLine();
 
         Optional<AgendamentosEntity> opt = agendamentosService.getById(id);
 
         if (opt.isEmpty()) {
-            System.out.println("Agendamento não encontrado.");
+            System.out.println("\nConsulta não encontrada.");
             return;
         }
 
         AgendamentosEntity agendamento = opt.get();
 
         if (agendamento.getStatus().equalsIgnoreCase("CANCELADO")) {
-            System.out.println("Este agendamento já está cancelado.");
+            System.out.println("\nEsta consulta já está cancelada.");
             return;
         }
 
-        agendamento.setStatus("CANCELADO");
+        agendamento.setStatus("CANCELADA");
         agendamentosService.update(id, agendamento);
 
-        System.out.println("\n✅ Agendamento cancelado com sucesso!");
-    }
-
-    //Verificar tabela do banco (tem apenas um id, precisa pro paciente e médico)
-    private void criarAgendamento(Scanner sc) {
-        //Agendamento...
+        System.out.println("\n✅ Consulta cancelada com sucesso!");
     }
 
 
-
-
-
-
-
-
-
-
-//    /**
-//     * Busca profissionais que começam com o termo fornecido.
-//     */
-//    public List<UsuariosEntity> buscarProfissionais(String termo) {
-//        List<UsuariosEntity> todos = usuariosService.getAll();
-//        List<UsuariosEntity> encontrados = new ArrayList<>();
-//
-//        for (UsuariosEntity u : todos) {
-//            if (u.getTipoUsuario().equalsIgnoreCase("ADMIN") && u.getNome().toLowerCase().startsWith(termo.toLowerCase())) {
-//                encontrados.add(u);
-//            }
-//        }
-//
-//        return encontrados;
-//    }
-//
-//    /**
-//     * Retorna horários fixos disponíveis para um profissional (exemplo).
-//     */
-//    public List<LocalTime> selecionarHorarios(Long idProfissional) {
-//        // Aqui você poderia buscar horários reais do banco, por enquanto é fixo
-//        List<LocalTime> horarios = new ArrayList<>();
-//        horarios.add(LocalTime.of(10, 30));
-//        horarios.add(LocalTime.of(15, 0));
-//        horarios.add(LocalTime.of(18, 15));
-//        return horarios;
-//    }
-//
-//    /**
-//     * Agenda a consulta para o paciente.
-//     */
-//    public AgendamentosEntity agendarConsulta(Long idPaciente, Long idProfissional, LocalDate data, LocalTime hora, String descricao) {
-//        AgendamentosEntity agendamento = new AgendamentosEntity();
-//        agendamento.setIdUsuario(idPaciente); // paciente
-//        agendamento.setDataConsulta(data);
-//        agendamento.setHoraConsulta(hora);
-//        agendamento.setDescricao(descricao);
-//        agendamento.setStatus("AGENDADO");
-//
-//        return agendamentosService.create(agendamento);
-//    }
-//
-//    /**
-//     * Lista todos os agendamentos de um paciente
-//     */
-//    public List<AgendamentosEntity> listarAgendamentos(Long idPaciente) {
-//        return agendamentosService.getByUsuario(idPaciente);
-//    }
-//
-//    /**
-//     * Cancela um agendamento pelo ID
-//     */
-//    public void cancelarAgendamento(Long idAgendamento) {
-//        Optional<AgendamentosEntity> agendamentoOpt = agendamentosService.getById(idAgendamento);
-//        if (agendamentoOpt.isPresent()) {
-//            AgendamentosEntity agendamento = agendamentoOpt.get();
-//            agendamento.setStatus("CANCELADO");
-//            agendamentosService.update(idAgendamento, agendamento);
-//        }
-//    }
 }

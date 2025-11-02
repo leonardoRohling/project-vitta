@@ -15,11 +15,13 @@ public class Login implements CommandLineRunner {
     private final UsuariosService usuariosService;
     private final AgendamentosService agendamentosService;
     private final Paciente telaPaciente;
+    private final Administrador telaAdministrador;
 
-    public Login(UsuariosService usuariosService, AgendamentosService agendamentosService, Paciente telaPaciente) {
+    public Login(UsuariosService usuariosService, AgendamentosService agendamentosService, Paciente telaPaciente, Administrador telaAdministrador) {
         this.usuariosService = usuariosService;
         this.agendamentosService = agendamentosService;
         this.telaPaciente = telaPaciente;
+        this.telaAdministrador = telaAdministrador;
     }
 
 
@@ -76,7 +78,7 @@ public class Login implements CommandLineRunner {
             if (u.getTipoUsuario().equalsIgnoreCase("PACIENTE")) {
                 telaPaciente.menuPaciente(sc, u);
             } else {
-                System.out.println("Tela de administrador ainda não implementada.");
+                telaAdministrador.menuAdmin(sc, u);
             }
         } else {
             System.out.println("\n❌ Usuário ou senha incorretos.");
