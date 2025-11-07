@@ -27,5 +27,5 @@ public class AgendamentosEntity {
 
     private String descricao;
 
-    private String status = "AGENDADO"; // AGENDADO, CONFIRMADO, CANCELADO
+    private String status = "AGENDADA"; // AGENDADA, CONFIRMADA, CANCELADA
 }
