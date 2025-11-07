@@ -74,7 +74,7 @@ public class Paciente {
 
         System.out.println("===== AGENDAMENTOS =====\n");
 
-        String[] statusList = {"SOLICITADA", "AGENDADA", "REALIZADA", "CANCELADA", "RECUSADA"};
+        String[] statusList = {"SOLICITADA", "AGENDADA", "SOLICITADA", "CANCELADA", "RECUSADA"};
 
         for (String status : statusList) {
             System.out.println(">>> " + status + " <<<");
@@ -174,7 +174,7 @@ public class Paciente {
 
         AgendamentosEntity agendamento = opt.get();
 
-        if (agendamento.getStatus().equalsIgnoreCase("CANCELADO")) {
+        if (agendamento.getStatus().equalsIgnoreCase("CANCELADA")) {
             System.out.println("\nEsta consulta já está cancelada.");
             return;
         }

@@ -31,6 +31,13 @@ public class UsuariosService {
         return usuariosRepository.findAll();
     }
 
+    public List<UsuariosEntity> getPacientes() {
+        return usuariosRepository.findAll()
+                .stream()
+                .filter(u -> "PACIENTE".equalsIgnoreCase(u.getTipoUsuario()))
+                .toList();
+    }
+
     // Deletar
     public void delete(Long id) {
         usuariosRepository.deleteById(id);

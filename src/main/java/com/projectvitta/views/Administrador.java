@@ -64,15 +64,29 @@ public class Administrador {
         System.out.print("Hora (HH:MM): ");
         String horaStr = sc.nextLine();
 
-        System.out.print("Status (AGENDADA / CANCELADA / REALIZADA): ");
+        System.out.print("Status (AGENDADA / CANCELADA / SOLICITADA): ");
         String status = sc.nextLine();
+
+        List<UsuariosEntity> pacientes = usuariosService.getPacientes();
+
+        System.out.println("=== Lista de Pacientes ===");
+        for (UsuariosEntity paciente : pacientes) {
+            System.out.printf("ID: %d | Nome: %s \n",
+                    paciente.getId(),
+                    paciente.getNome());
+        }
+        System.out.println("==========================");
+
+
+        System.out.print("ID Paciente: ");
+        Long idPaciente = sc.nextLong();
 
         try {
             LocalDate data = LocalDate.parse(dataStr);
             LocalTime hora = LocalTime.parse(horaStr);
 
             AgendamentosEntity nova = new AgendamentosEntity();
-            nova.setIdUsuario(admin.getId()); // profissional
+            nova.setIdUsuario(idPaciente);
             nova.setDescricao(descricao);
             nova.setDataConsulta(data);
             nova.setHoraConsulta(hora);
@@ -96,7 +110,7 @@ public class Administrador {
 
         System.out.println("\n===== CONSULTAS =====\n");
 
-        String[] statusList = {"AGENDADA", "REALIZADA", "CANCELADA", "RECUSADA"};
+        String[] statusList = {"AGENDADA", "SOLICITADA", "CANCELADA", "RECUSADA"};
 
         for (String status : statusList) {
             System.out.println(">>> " + status + " <<<");
